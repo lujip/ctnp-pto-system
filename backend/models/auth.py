@@ -13,6 +13,9 @@ class AuthModel:
     
     def find_user_by_email(self, email):
         return self.collection.find_one({'email': email})
+
+    def find_user_by_username(self, username):
+        return self.collection.find_one({'username': username})
     
     def find_user_by_id(self, user_id):
         return self.collection.find_one({'_id': user_id})
