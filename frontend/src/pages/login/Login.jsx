@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { API_BASE_URL } from '../../config/api';
+import logo from '../../assets/ctnp_logo.png';
 import './Login.css';
 
 function Login() {
@@ -53,6 +54,9 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-box">
+        <div className="login-logo">
+          <img src={logo} alt="CTNP Logo" />
+        </div>
         <div className="login-header">
           <h1>PTO System</h1>
           <p>Login to your account</p>

@@ -10,9 +10,21 @@
   background: #2A2D35;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  padding: 0px 20px 20px 20px;
   width: 100%;
   max-width: 420px;
+}
+.login-container .login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+}
+.login-container .login-logo img {
+  width: 300px;
+  height: 300px;
+  margin-top: -10%;
+  margin-bottom: -15%;
+  object-fit: fill;
 }
 .login-container .login-header {
   text-align: center;
