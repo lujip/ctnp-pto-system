@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineCalendar, HiOutlineTrash, HiOutlineClock, HiOutlineCheckCircle, HiOutlineXCircle } from 'react-icons/hi2';
+import { API_BASE_URL } from '../config/api';
 import './MyRequest.css';
 
 const STATUS_TABS = [
@@ -34,7 +35,7 @@ function MyRequest() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/pto/requests?employee_id=${user.id}`,
+        `${API_BASE_URL}/pto/requests?employee_id=${user.id}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -67,7 +68,7 @@ function MyRequest() {
     try {
       setDeletingId(requestId);
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/pto/requests/${requestId}`, {
+      const response = await fetch(`${API_BASE_URL}/pto/requests/${requestId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

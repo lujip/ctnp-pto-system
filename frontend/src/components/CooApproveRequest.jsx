@@ -7,6 +7,7 @@ import {
   HiOutlineUser,
   HiOutlineXMark
 } from 'react-icons/hi2';
+import { API_BASE_URL } from '../config/api';
 import './CooApproveRequest.css';
 
 const STATUS_TABS = [
@@ -51,7 +52,7 @@ function CooApproveRequest() {
       if (!silent) setLoading(true);
       setError('');
 
-      const requestsResponse = await fetch('http://localhost:5000/api/pto/requests?limit=100', {
+      const requestsResponse = await fetch(`${API_BASE_URL}/pto/requests?limit=100`, {
         headers: getAuthHeaders()
       });
 
@@ -76,7 +77,7 @@ function CooApproveRequest() {
       setActionId(requestId);
       setActionType(action);
 
-      const response = await fetch(`http://localhost:5000/api/pto/requests/${requestId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/pto/requests/${requestId}/status`, {
         method: 'PATCH',
         headers: getAuthHeaders(),
         body: JSON.stringify({ action, comments })

@@ -8,6 +8,7 @@ import {
   HiOutlineXMark,
   HiOutlineChevronRight
 } from 'react-icons/hi2';
+import { API_BASE_URL } from '../config/api';
 import './AdminAllRequest.css';
 
 function AdminAllRequest() {
@@ -33,7 +34,7 @@ function AdminAllRequest() {
       setLoading(true);
       setError('');
 
-      const response = await fetch('http://localhost:5000/api/pto/requests?limit=100', {
+      const response = await fetch(`${API_BASE_URL}/pto/requests?limit=100`, {
         headers: getAuthHeaders()
       });
 

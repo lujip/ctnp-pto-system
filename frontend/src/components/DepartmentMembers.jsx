@@ -6,6 +6,7 @@ import {
   HiOutlineUserMinus
 } from 'react-icons/hi2';
 import { USER_TYPES, normalizeUserType } from '../utils/userType';
+import { API_BASE_URL } from '../config/api';
 import './DepartmentMembers.css';
 
 const DEPARTMENT_USER_TYPES = `${USER_TYPES.EMPLOYEE},${USER_TYPES.SUPERVISOR}`;
@@ -83,7 +84,7 @@ function DepartmentMembers() {
 
       if (search.trim()) params.append('search', search.trim());
 
-      const response = await fetch(`http://localhost:5000/api/users/?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/users/?${params}`, {
         headers: getAuthHeaders()
       });
 
@@ -120,7 +121,7 @@ function DepartmentMembers() {
         params.append('search', searchTerm.trim());
       }
 
-      const response = await fetch(`http://localhost:5000/api/users/?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/users/?${params}`, {
         headers: getAuthHeaders()
       });
 
@@ -175,7 +176,7 @@ function DepartmentMembers() {
     setDetailsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${member.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${member.id}`, {
         headers: getAuthHeaders()
       });
 
@@ -214,7 +215,7 @@ function DepartmentMembers() {
       setAssigning(true);
       setAssignError('');
 
-      const response = await fetch(`http://localhost:5000/api/users/${assignMemberId}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${assignMemberId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ manager_id: managerId })
@@ -248,7 +249,7 @@ function DepartmentMembers() {
       setRemoving(true);
       setDetailsError('');
 
-      const response = await fetch(`http://localhost:5000/api/users/${selectedMember.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedMember.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ manager_id: '' })

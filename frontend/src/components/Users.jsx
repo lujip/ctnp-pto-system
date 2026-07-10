@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HiOutlinePlus, HiOutlineXMark, HiOutlineMagnifyingGlass, HiOutlineTrash, HiOutlinePencil } from 'react-icons/hi2';
 import { USER_TYPES, normalizeUserType } from '../utils/userType';
+import { API_BASE_URL } from '../config/api';
 import './Users.css';
 
 const initialFormData = {
@@ -93,7 +94,7 @@ function Users() {
 
   const fetchUsersByType = async (userType) => {
     const response = await fetch(
-      `http://localhost:5000/api/users/?user_type=${userType}&limit=100`,
+      `${API_BASE_URL}/users/?user_type=${userType}&limit=100`,
       { headers: getAuthHeaders() }
     );
 
@@ -134,7 +135,7 @@ function Users() {
       if (search.trim()) params.append('search', search.trim());
       if (userTypeFilter) params.append('user_type', userTypeFilter);
 
-      const response = await fetch(`http://localhost:5000/api/users/?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/users/?${params}`, {
         headers: getAuthHeaders()
       });
 
@@ -185,7 +186,7 @@ function Users() {
     setEditFormData(initialFormData);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
         headers: getAuthHeaders()
       });
 
@@ -260,7 +261,7 @@ function Users() {
       if (!payload.supervisor_id) payload.supervisor_id = '';
       if (!payload.manager_id) payload.manager_id = '';
 
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload)
@@ -296,7 +297,7 @@ function Users() {
       setDeleting(true);
       setDetailsError('');
 
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedUser.id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -334,7 +335,7 @@ function Users() {
       if (!payload.supervisor_id) delete payload.supervisor_id;
       if (!payload.manager_id) delete payload.manager_id;
 
-      const response = await fetch('http://localhost:5000/api/users/', {
+      const response = await fetch(`${API_BASE_URL}/users/`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload)

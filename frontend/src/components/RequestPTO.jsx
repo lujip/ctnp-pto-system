@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Calendar from './Calendar';
 import { USER_TYPES, normalizeUserType } from '../utils/userType';
+import { API_BASE_URL } from '../config/api';
 import './RequestPTO.css';
 
 function RequestPTO() {
@@ -43,7 +44,7 @@ function RequestPTO() {
   const fetchLeaveTypes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/pto/leave-types', {
+      const response = await fetch(`${API_BASE_URL}/pto/leave-types`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -63,7 +64,7 @@ function RequestPTO() {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user'));
       
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -128,7 +129,7 @@ function RequestPTO() {
       const start_date = sortedDates[0];
       const end_date = sortedDates[sortedDates.length - 1];
       
-      const response = await fetch('http://localhost:5000/api/pto/requests', {
+      const response = await fetch(`${API_BASE_URL}/pto/requests`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

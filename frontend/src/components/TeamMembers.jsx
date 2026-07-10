@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineUserPlus, HiOutlineXMark, HiOutlineMagnifyingGlass, HiOutlineUserMinus } from 'react-icons/hi2';
 import { USER_TYPES } from '../utils/userType';
+import { API_BASE_URL } from '../config/api';
 import './TeamMembers.css';
 
 function TeamMembers() {
@@ -72,7 +73,7 @@ function TeamMembers() {
 
       if (search.trim()) params.append('search', search.trim());
 
-      const response = await fetch(`http://localhost:5000/api/users/?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/users/?${params}`, {
         headers: getAuthHeaders()
       });
 
@@ -104,7 +105,7 @@ function TeamMembers() {
         limit: 100
       });
 
-      const response = await fetch(`http://localhost:5000/api/users/?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/users/?${params}`, {
         headers: getAuthHeaders()
       });
 
@@ -146,7 +147,7 @@ function TeamMembers() {
     setDetailsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${employee.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${employee.id}`, {
         headers: getAuthHeaders()
       });
 
@@ -185,7 +186,7 @@ function TeamMembers() {
       setAssigning(true);
       setAssignError('');
 
-      const response = await fetch(`http://localhost:5000/api/users/${assignEmployeeId}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${assignEmployeeId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ supervisor_id: supervisorId })
@@ -219,7 +220,7 @@ function TeamMembers() {
       setRemoving(true);
       setDetailsError('');
 
-      const response = await fetch(`http://localhost:5000/api/users/${selectedEmployee.id}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${selectedEmployee.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ supervisor_id: '' })
