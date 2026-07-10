@@ -1,0 +1,102 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1F2128;
+  padding: 20px;
+}
+.login-container .login-box {
+  background: #2A2D35;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+}
+.login-container .login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.login-container .login-header h1 {
+  color: white;
+  font-size: 28px;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+.login-container .login-header p {
+  color: white;
+  font-size: 14px;
+  margin: 0;
+}
+.login-container .login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.login-container .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.login-container .form-group label {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+.login-container .form-group input {
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+.login-container .form-group input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.login-container .form-group input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+.login-container .error-message {
+  padding: 12px 16px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  font-size: 14px;
+  text-align: center;
+}
+.login-container .login-button {
+  padding: 14px 24px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+.login-container .login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+.login-container .login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+.login-container .login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+@media (max-width: 480px) {
+.login-container .login-box {
+    padding: 30px 20px;
+  }
+.login-container .login-header h1 {
+    font-size: 24px;
+  }
+}

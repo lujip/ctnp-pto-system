@@ -1,0 +1,9 @@
+.employee-page {
+  padding: 30px;
+  min-height: 100vh;
+  background-color: #1F2128;
+}
+.employee-page h1 {
+  color: white;
+  margin-bottom: 20px;
+}

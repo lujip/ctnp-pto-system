@@ -1,0 +1,13 @@
+.manager-page {
+  padding: 30px;
+  background-color: #1F2128;
+  min-height: 100vh;
+}
+.manager-page h1,
+.manager-page h2 {
+  color: white;
+  margin-bottom: 20px;
+}
+.manager-page p {
+  color: white;
+}

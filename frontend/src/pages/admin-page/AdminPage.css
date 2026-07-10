@@ -1,0 +1,9 @@
+.admin-page {
+  padding: 30px;
+  background-color: #1F2128;
+  min-height: 100vh;
+}
+.admin-page h1 {
+  color: white;
+  margin-bottom: 20px;
+}

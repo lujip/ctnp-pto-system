@@ -1,0 +1,22 @@
+.dashboard-page .dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+.dashboard-page .dashboard-content {
+  flex: 1;
+  margin-left: 70px;
+  transition: margin-left 0.3s ease;
+}
+.dashboard-page .dashboard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 18px;
+}
+@media (max-width: 768px) {
+.dashboard-page .dashboard-content {
+    margin-left: 70px;
+  }
+}

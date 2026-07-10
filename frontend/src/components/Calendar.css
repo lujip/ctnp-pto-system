@@ -1,0 +1,110 @@
+.calendar-container {
+  background: #2A2D35;
+  border: 1px solid rgb(121, 121, 121);
+  border-radius: 0;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.calendar-container .calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.calendar-container .calendar-month-year {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4782bd;
+}
+.calendar-container .calendar-nav-btn {
+  background: none;
+  border: solid 1px rgb(121, 121, 121);
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.calendar-container .calendar-nav-btn:hover {
+  background: #666;
+}
+.calendar-container .calendar-nav-btn svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+.calendar-container .calendar-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.calendar-container .calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.calendar-container .calendar-weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  padding: 8px 0;
+}
+.calendar-container .calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-container .calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  color: #2c3e50;
+  background: white;
+  border: 2px solid transparent;
+}
+.calendar-container .calendar-day.empty {
+  cursor: default;
+}
+.calendar-container .calendar-day:not(.empty):not(.disabled):hover {
+  background: #e3f2fd;
+  border-color: #90caf9;
+}
+.calendar-container .calendar-day.selected {
+  background: #3498db;
+  color: white;
+  font-weight: 600;
+  border-color: #2980b9;
+}
+.calendar-container .calendar-day.disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  background: #f9f9f9;
+}
+.calendar-container .calendar-day.today {
+  border-color: #ff9800;
+  font-weight: 600;
+}
+.calendar-container .calendar-day.today.selected {
+  border-color: #2980b9;
+}
+@media (max-width: 768px) {
+.calendar-container {
+    padding: 15px;
+  }
+.calendar-container .calendar-day {
+    font-size: 12px;
+  }
+.calendar-container .calendar-month-year {
+    font-size: 16px;
+  }
+}
