@@ -8,7 +8,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    CORS(app)
+    CORS(app, origins=[
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ])
     
     init_db(app.config['MONGO_URI'], app.config['DB_NAME'])
     

@@ -3,6 +3,7 @@ import AdminApproveRequest from '../../components/AdminApproveRequest';
 import AdminAllRequest from '../../components/AdminAllRequest';
 import RequestPTO from '../../components/RequestPTO';
 import MyRequest from '../../components/MyRequest';
+import AvailabilityCalendar from '../../components/AvailabilityCalendar';
 import './AdminPage.css';
 
 function AdminPage({ currentPage }) {
@@ -18,6 +19,8 @@ function AdminPage({ currentPage }) {
         return <RequestPTO />;
       case '/my-requests':
         return <MyRequest />;
+      case '/calendar':
+        return <AvailabilityCalendar />;
       case '/reports':
         return <div><h2>Reports</h2><p>Coming soon...</p></div>;
       case '/settings':

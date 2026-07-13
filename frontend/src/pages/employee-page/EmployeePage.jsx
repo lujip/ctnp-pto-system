@@ -1,5 +1,6 @@
 import RequestPTO from '../../components/RequestPTO';
 import MyRequest from '../../components/MyRequest';
+import AvailabilityCalendar from '../../components/AvailabilityCalendar';
 import './EmployeePage.css';
 
 function EmployeePage({ currentPage }) {
@@ -10,7 +11,7 @@ function EmployeePage({ currentPage }) {
       case '/my-requests':
         return <MyRequest />;
       case '/calendar':
-        return <div><h2>Calendar</h2><p>Coming soon...</p></div>;
+        return <AvailabilityCalendar />;
       case '/profile':
         return <div><h2>Profile</h2><p>Coming soon...</p></div>;
       default:

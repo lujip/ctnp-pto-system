@@ -50,6 +50,7 @@ const Sidebar = ({ userType = 'employee', onNavigate, currentPage }) => {
      // { icon: HiOutlineHome, label: 'Dashboard', path: '/' },
       { icon: HiOutlineDocumentText, label: 'Request PTO', path: '/request' },
       { icon: HiOutlineClipboardDocumentList, label: 'My Requests', path: '/my-requests' },
+      { icon: HiOutlineCalendarDays, label: 'Calendar', path: '/calendar' },
     //  { icon: HiOutlineUser, label: 'Profile', path: '/profile' },
     ],
     supervisor: [
@@ -60,12 +61,14 @@ const Sidebar = ({ userType = 'employee', onNavigate, currentPage }) => {
      // { icon: HiOutlineUser, label: 'Profile', path: '/profile' },
       { icon: HiOutlineDocumentText, label: 'Request PTO', path: '/request' },
       { icon: HiOutlineClipboardDocumentList, label: 'My Requests', path: '/my-requests' },
+      { icon: HiOutlineCalendarDays, label: 'Calendar', path: '/calendar' },
     ],
     manager: [
       { icon: HiOutlineCheckCircle, label: 'Approve Requests', path: '/approve' },
       { icon: HiOutlineUsers, label: 'Department Team', path: '/department' },
       { icon: HiOutlineDocumentText, label: 'Request PTO', path: '/request' },
       { icon: HiOutlineClipboardDocumentList, label: 'My Requests', path: '/my-requests' },
+      { icon: HiOutlineCalendarDays, label: 'Calendar', path: '/calendar' },
     ],
     admin: [
     //  { icon: HiOutlineHome, label: 'Dashboard', path: '/' },
@@ -74,6 +77,7 @@ const Sidebar = ({ userType = 'employee', onNavigate, currentPage }) => {
       { icon: HiOutlineUsers, label: 'Users', path: '/users' },
       { icon: HiOutlineDocumentText, label: 'Request PTO', path: '/request' },
       { icon: HiOutlineClipboardDocumentList, label: 'My Requests', path: '/my-requests' },
+      { icon: HiOutlineCalendarDays, label: 'Calendar', path: '/calendar' },
    //   { icon: HiOutlineChartBar, label: 'Reports', path: '/reports' },
     //  { icon: HiOutlineCog6Tooth, label: 'Settings', path: '/settings' },
    //   { icon: HiOutlineUser, label: 'Profile', path: '/profile' },
@@ -82,6 +86,7 @@ const Sidebar = ({ userType = 'employee', onNavigate, currentPage }) => {
       { icon: HiOutlineCheckCircle, label: 'Approve Requests', path: '/coo-approve' },
       { icon: HiOutlineDocumentDuplicate, label: 'All Requests', path: '/requests' },
       { icon: HiOutlineUsers, label: 'Users', path: '/users' },
+      { icon: HiOutlineCalendarDays, label: 'Calendar', path: '/calendar' },
     ]
   };
 

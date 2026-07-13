@@ -97,6 +97,25 @@ class PTOModel:
         total = self.collection.count_documents(query)
         
         return requests, total
+
+    def get_calendar_requests(self, start_date=None, end_date=None):
+        query = {'status': {'$in': ['APPROVED', 'PENDING']}}
+
+        if start_date and end_date:
+            start = self._parse_calendar_date(start_date)
+            end = self._parse_calendar_date(end_date)
+            if start and end:
+                query['start_date'] = {'$lte': end}
+                query['end_date'] = {'$gte': start}
+
+        return list(self.collection.find(query).sort('start_date', 1))
+
+    def _parse_calendar_date(self, value):
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value.replace(tzinfo=None) if value.tzinfo else value
+        return datetime.fromisoformat(str(value).replace('Z', '+00:00')).replace(tzinfo=None)
     
     def get_request_by_id(self, request_id):
         try:
@@ -248,6 +267,13 @@ class PTOModel:
             leave_types = list(self.leave_types_collection.find())
         
         return leave_types
+
+    def _format_datetime(self, value):
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value.isoformat() + 'Z'
+        return value
     
     def serialize_request(self, request):
         if not request:
@@ -255,7 +281,12 @@ class PTOModel:
         
         leave_dates = request.get('leave_dates', [])
         if leave_dates and isinstance(leave_dates[0], datetime):
-            leave_dates = [d.isoformat() for d in leave_dates]
+            leave_dates = [self._format_datetime(d) for d in leave_dates]
+        elif leave_dates:
+            leave_dates = [
+                self._format_datetime(d) if isinstance(d, datetime) else d
+                for d in leave_dates
+            ]
         
         return {
             'id': str(request['_id']),
@@ -267,8 +298,8 @@ class PTOModel:
             'employee_number': request.get('employee_number', ''),
             
             'leave_type': request.get('leave_type', ''),
-            'start_date': request.get('start_date').isoformat() if request.get('start_date') else None,
-            'end_date': request.get('end_date').isoformat() if request.get('end_date') else None,
+            'start_date': self._format_datetime(request.get('start_date')),
+            'end_date': self._format_datetime(request.get('end_date')),
             'total_days': request.get('total_days', 0),
             'leave_dates': leave_dates,
             'reason': request.get('reason', ''),

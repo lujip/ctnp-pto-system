@@ -23,6 +23,7 @@ const CONFIG = [
   ['components/DepartmentMembers.css', 'department-members-container'],
   ['components/TeamMembers.css', 'team-members-container'],
   ['components/Calendar.css', 'calendar-container'],
+  ['components/AvailabilityCalendar.css', 'availability-calendar-container'],
 ];
 
 function findMatchingBrace(content, openIndex) {

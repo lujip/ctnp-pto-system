@@ -1,6 +1,7 @@
 import Users from '../../components/Users';
 import CooApproveRequest from '../../components/CooApproveRequest';
 import AdminAllRequest from '../../components/AdminAllRequest';
+import AvailabilityCalendar from '../../components/AvailabilityCalendar';
 import './CooPage.css';
 
 function CooPage({ currentPage }) {
@@ -12,6 +13,8 @@ function CooPage({ currentPage }) {
         return <AdminAllRequest />;
       case '/users':
         return <Users />;
+      case '/calendar':
+        return <AvailabilityCalendar />;
       case '/reports':
         return <div><h2>Reports</h2><p>Coming soon...</p></div>;
       case '/settings':

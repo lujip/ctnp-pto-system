@@ -2,6 +2,7 @@ import RequestPTO from '../../components/RequestPTO';
 import MyRequest from '../../components/MyRequest';
 import TeamMembers from '../../components/TeamMembers';
 import SupervisorApproveRequest from '../../components/SupervisorApproveRequest';
+import AvailabilityCalendar from '../../components/AvailabilityCalendar';
 import './SupervisorPage.css';
 
 function SupervisorPage({ currentPage }) {
@@ -14,7 +15,7 @@ function SupervisorPage({ currentPage }) {
       case '/reports':
         return <div><h2>Reports</h2><p>Coming soon...</p></div>;
       case '/calendar':
-        return <div><h2>Calendar</h2><p>Coming soon...</p></div>;
+        return <AvailabilityCalendar />;
       case '/profile':
         return <div><h2>Profile</h2><p>Coming soon...</p></div>;
       case '/request':

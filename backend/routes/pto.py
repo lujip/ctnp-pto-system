@@ -21,6 +21,22 @@ def get_leave_types(current_user):
     except Exception as e:
         return jsonify({'message': f'An error occurred: {str(e)}'}), 500
 
+@pto_bp.route('/calendar', methods=['GET'])
+@token_required
+def get_calendar_entries(current_user):
+    try:
+        pto_model = PTOModel(get_db())
+        start = request.args.get('start')
+        end = request.args.get('end')
+
+        entries = pto_model.get_calendar_requests(start, end)
+        serialized_entries = [pto_model.serialize_request(entry) for entry in entries]
+
+        return jsonify({'entries': serialized_entries}), 200
+
+    except Exception as e:
+        return jsonify({'message': f'An error occurred: {str(e)}'}), 500
+
 @pto_bp.route('/requests', methods=['GET'])
 @token_required
 def get_pto_requests(current_user):
