@@ -190,11 +190,6 @@ function RequestPTO() {
       </div>
 
       <form onSubmit={handleSubmit} className="request-pto-form">
-        {error && (
-          <div className="message error-message">
-            {error}
-          </div>
-        )}
 
         {success && (
           <div className="message success-message">
@@ -256,6 +251,11 @@ function RequestPTO() {
             disabled={loading}
           />
         </div>
+        {error && (
+          <div className="message error-message">
+            {error}
+          </div>
+        )}
 
         <div className="form-actions">
           <button 
@@ -278,6 +278,8 @@ function RequestPTO() {
             {loading ? 'Submitting...' : 'Submit Request'}
           </button>
         </div>
+
+        
       </form>
     </div>
   );

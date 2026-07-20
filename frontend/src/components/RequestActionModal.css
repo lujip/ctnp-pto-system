@@ -1,0 +1,180 @@
+.request-action-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  padding: 20px;
+}
+
+.request-action-modal {
+  background: #292C33;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid rgb(121, 121, 121);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.request-action-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgb(121, 121, 121);
+  background: #1F2128;
+}
+
+.request-action-modal-header h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+}
+
+.request-action-modal-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.request-action-modal-close:hover:not(:disabled) {
+  color: white;
+}
+
+.request-action-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.request-action-modal-close svg {
+  width: 22px;
+  height: 22px;
+}
+
+.request-action-modal-form {
+  padding: 20px;
+}
+
+.request-action-modal-subtitle {
+  color: #999;
+  font-size: 14px;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.request-action-modal-subtitle strong {
+  color: white;
+}
+
+.request-action-modal-error {
+  padding: 12px;
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  color: #e74c3c;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.request-action-modal-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.request-action-modal-form .form-group label {
+  color: #ccc;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.request-action-modal-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1F2128;
+  border: 1px solid rgb(121, 121, 121);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.request-action-modal-form textarea:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.request-action-modal-form textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.request-action-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.request-action-modal-actions .btn-secondary,
+.request-action-modal-actions .btn-approve-submit,
+.request-action-modal-actions .btn-reject-submit {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.request-action-modal-actions .btn-secondary {
+  background: #32343a;
+  color: white;
+  border: 1px solid rgb(121, 121, 121);
+}
+
+.request-action-modal-actions .btn-secondary:hover:not(:disabled) {
+  background: #3a3d45;
+}
+
+.request-action-modal-actions .btn-approve-submit {
+  background: #27ae60;
+  color: white;
+}
+
+.request-action-modal-actions .btn-approve-submit:hover:not(:disabled) {
+  background: #219a52;
+}
+
+.request-action-modal-actions .btn-reject-submit {
+  background: #e74c3c;
+  color: white;
+}
+
+.request-action-modal-actions .btn-reject-submit:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+.request-action-modal-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .request-action-modal-actions {
+    flex-direction: column;
+  }
+
+  .request-action-modal-actions button {
+    width: 100%;
+  }
+}

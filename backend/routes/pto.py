@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from models.pto import PTOModel
-from models.user import UserModel, normalize_user_type
+from models.user import UserModel, normalize_user_type, resolve_full_name
 from models.auth import token_required
 from models import get_db
 from datetime import datetime
@@ -137,18 +137,20 @@ def create_pto_request(current_user):
         
         pto_model = PTOModel(get_db())
         request_id = pto_model.create_request(data)
-        
+
         user_model = UserModel(get_db())
         user_model.add_pto_request(str(current_user['_id']), request_id)
-        
+
         new_request = pto_model.get_request_by_id(request_id)
         serialized_request = pto_model.serialize_request(new_request)
-        
+
         return jsonify({
             'message': 'PTO request created successfully',
             'request': serialized_request
         }), 201
-    
+
+    except ValueError as e:
+        return jsonify({'message': str(e)}), 400
     except Exception as e:
         return jsonify({'message': f'An error occurred: {str(e)}'}), 500
 
@@ -253,14 +255,15 @@ def update_request_status(current_user, request_id):
                 return jsonify({'message': 'Supervisor, manager, and admin approval are required before COO approval'}), 400
         
         previous_status = pto_request.get('status')
-        comments = data.get('comments', '')
+        comments = (data.get('comments') or '').strip() or None
         
         success = pto_model.update_request_status(
             request_id,
             user_type,
             action,
             str(current_user['_id']),
-            comments
+            comments,
+            resolve_full_name(current_user),
         )
         
         if success:

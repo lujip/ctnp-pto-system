@@ -4,6 +4,7 @@ import {
   HiChevronRight
 } from 'react-icons/hi2';
 import { API_BASE_URL } from '../config/api';
+import { RequestCardDetailsModal } from './RequestCard';
 import './AvailabilityCalendar.css';
 
 const MONTH_NAMES = [
@@ -127,6 +128,7 @@ function AvailabilityCalendar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
     fetchCalendarEntries();
@@ -224,7 +226,14 @@ function AvailabilityCalendar() {
         style={{ backgroundColor: getLeaveColor(entry.leave_type) }}
         title={`${entry.requester_name} (${entry.department || 'No department'}) - ${entry.leave_type}${isPending ? ' (Pending)' : ''}`}
       >
-        <span className="entry-name">{entry.requester_name}</span>
+        <button
+          type="button"
+          className="entry-name"
+          onClick={() => setSelectedRequest(entry)}
+          title={`View ${entry.requester_name}'s request details`}
+        >
+          {entry.requester_name}
+        </button>
         {!compact && entry.department && (
           <span className="entry-department">{entry.department}</span>
         )}
@@ -327,10 +336,7 @@ function AvailabilityCalendar() {
         <div key={dateKey} className={`month-day-cell ${isToday ? 'today' : ''}`}>
           <div className="month-day-number">{day}</div>
           <div className="month-day-entries">
-            {dayEntries.slice(0, 3).map((entry) => renderEntryChip(entry, true))}
-            {dayEntries.length > 3 && (
-              <span className="more-entries">+{dayEntries.length - 3} more</span>
-            )}
+            {dayEntries.map((entry) => renderEntryChip(entry, true))}
           </div>
         </div>
       );
@@ -483,6 +489,13 @@ function AvailabilityCalendar() {
           {viewMode === 'month' && renderMonthView()}
           {viewMode === 'year' && renderYearView()}
         </div>
+      )}
+
+      {selectedRequest && (
+        <RequestCardDetailsModal
+          request={selectedRequest}
+          onClose={() => setSelectedRequest(null)}
+        />
       )}
     </div>
   );

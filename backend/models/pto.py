@@ -1,6 +1,16 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
+import re
+from models.settings import SettingsModel
 from models.user import normalize_user_type
+
+APPROVAL_ROLE_LABELS = {
+    'SUPERVISOR': 'Supervisor',
+    'MANAGER': 'Manager',
+    'ADMIN': 'Admin',
+    'COO': 'COO',
+}
+
 
 class PTOModel:
     def __init__(self, db):
@@ -41,42 +51,108 @@ class PTOModel:
             "approved_by_supervisor": None,
             "supervisor_approved_date": None,
             "supervisor_comments": None,
+            "supervisor_approver_name": None,
+            "supervisor_approver_role": None,
             
             "approved_by_manager": None,
             "manager_approved_date": None,
             "manager_comments": None,
+            "manager_approver_name": None,
+            "manager_approver_role": None,
             
             "approved_by_admin": None,
             "admin_approved_date": None,
             "admin_comments": None,
+            "admin_approver_name": None,
+            "admin_approver_role": None,
             
             "approved_by_coo": None,
             "coo_approved_date": None,
             "coo_comments": None,
+            "coo_approver_name": None,
+            "coo_approver_role": None,
             
             "rejection_reason": None,
             "rejected_by": None,
             "rejected_date": None,
+            "rejected_by_name": None,
+            "rejected_by_role": None,
             
             "created_at": now,
             "updated_at": now
         }
 
+        requester_name = user_data.get('full_name', '')
+
         if user_type == 'SUPERVISOR':
             pto_request['approval_status']['supervisor'] = 'APPROVED'
             pto_request['approved_by_supervisor'] = employee_id
             pto_request['supervisor_approved_date'] = now
+            pto_request['supervisor_approver_name'] = requester_name
+            pto_request['supervisor_approver_role'] = APPROVAL_ROLE_LABELS['SUPERVISOR']
         elif user_type == 'MANAGER':
             pto_request['approval_status']['supervisor'] = 'APPROVED'
             pto_request['approved_by_supervisor'] = employee_id
             pto_request['supervisor_approved_date'] = now
+            pto_request['supervisor_approver_name'] = requester_name
+            pto_request['supervisor_approver_role'] = APPROVAL_ROLE_LABELS['SUPERVISOR']
             pto_request['approval_status']['manager'] = 'APPROVED'
             pto_request['approved_by_manager'] = employee_id
             pto_request['manager_approved_date'] = now
-        
+            pto_request['manager_approver_name'] = requester_name
+            pto_request['manager_approver_role'] = APPROVAL_ROLE_LABELS['MANAGER']
+
+        self._validate_advance_notice(request_data, now)
+
         result = self.collection.insert_one(pto_request)
         return str(result.inserted_id)
     
+    def _to_date(self, value):
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, str):
+            return datetime.fromisoformat(value.replace('Z', '+00:00')).date()
+        return value
+
+    def _get_advance_notice_days(self, leave_type_name):
+        leave_type_name = str(leave_type_name or '').strip()
+        if not leave_type_name:
+            return 0
+
+        leave_type = self.leave_types_collection.find_one({
+            '$or': [
+                {'name': {'$regex': f'^{re.escape(leave_type_name)}$', '$options': 'i'}},
+                {'code': {'$regex': f'^{re.escape(leave_type_name)}$', '$options': 'i'}},
+            ]
+        })
+        if leave_type is not None and leave_type.get('advance_notice_days') is not None:
+            return int(leave_type['advance_notice_days'])
+
+        return 0
+
+    def _validate_advance_notice(self, request_data, now):
+        leave_type = str(request_data.get('leave_type', '')).strip()
+        advance_notice_days = self._get_advance_notice_days(leave_type)
+        if advance_notice_days <= 0:
+            return
+
+        settings_model = SettingsModel(self.collection.database)
+        rejection_message = settings_model.get_vacation_rejection_message(advance_notice_days)
+        min_allowed_date = now.date() + timedelta(days=advance_notice_days)
+
+        dates_to_check = request_data.get('leave_dates') or [
+            request_data.get('start_date'),
+            request_data.get('end_date'),
+        ]
+
+        for raw_date in dates_to_check:
+            if not raw_date:
+                continue
+
+            leave_date = self._to_date(raw_date)
+            if leave_date < min_allowed_date:
+                raise ValueError(rejection_message)
+
     def get_all_requests(self, filters=None, page=1, limit=10):
         query = {}
         
@@ -144,33 +220,42 @@ class PTOModel:
         except:
             return False
     
-    def update_request_status(self, request_id, approver_role, action, approver_id=None, comments=None):
+    def update_request_status(self, request_id, approver_role, action, approver_id=None, comments=None, approver_name=None):
         try:
             update_fields = {'updated_at': datetime.utcnow()}
+            role_label = APPROVAL_ROLE_LABELS.get(approver_role.upper(), approver_role.title())
             
             if action.upper() == 'APPROVE':
                 if approver_role.upper() == 'SUPERVISOR':
                     update_fields['approved_by_supervisor'] = ObjectId(approver_id) if approver_id else None
                     update_fields['supervisor_approved_date'] = datetime.utcnow()
                     update_fields['supervisor_comments'] = comments
+                    update_fields['supervisor_approver_name'] = approver_name
+                    update_fields['supervisor_approver_role'] = role_label
                     update_fields['approval_status.supervisor'] = 'APPROVED'
                     
                 elif approver_role.upper() == 'MANAGER':
                     update_fields['approved_by_manager'] = ObjectId(approver_id) if approver_id else None
                     update_fields['manager_approved_date'] = datetime.utcnow()
                     update_fields['manager_comments'] = comments
+                    update_fields['manager_approver_name'] = approver_name
+                    update_fields['manager_approver_role'] = role_label
                     update_fields['approval_status.manager'] = 'APPROVED'
                     
                 elif approver_role.upper() == 'ADMIN':
                     update_fields['approved_by_admin'] = ObjectId(approver_id) if approver_id else None
                     update_fields['admin_approved_date'] = datetime.utcnow()
                     update_fields['admin_comments'] = comments
+                    update_fields['admin_approver_name'] = approver_name
+                    update_fields['admin_approver_role'] = role_label
                     update_fields['approval_status.admin'] = 'APPROVED'
                 
                 elif approver_role.upper() == 'COO':
                     update_fields['approved_by_coo'] = ObjectId(approver_id) if approver_id else None
                     update_fields['coo_approved_date'] = datetime.utcnow()
                     update_fields['coo_comments'] = comments
+                    update_fields['coo_approver_name'] = approver_name
+                    update_fields['coo_approver_role'] = role_label
                     update_fields['approval_status.coo'] = 'APPROVED'
                 
                 pto_request = self.collection.find_one({'_id': ObjectId(request_id)})
@@ -195,15 +280,25 @@ class PTOModel:
                 update_fields['rejected_by'] = ObjectId(approver_id) if approver_id else None
                 update_fields['rejected_date'] = datetime.utcnow()
                 update_fields['rejection_reason'] = comments
+                update_fields['rejected_by_name'] = approver_name
+                update_fields['rejected_by_role'] = role_label
                 
                 if approver_role.upper() == 'SUPERVISOR':
                     update_fields['approval_status.supervisor'] = 'REJECTED'
+                    update_fields['supervisor_approver_name'] = approver_name
+                    update_fields['supervisor_approver_role'] = role_label
                 elif approver_role.upper() == 'MANAGER':
                     update_fields['approval_status.manager'] = 'REJECTED'
+                    update_fields['manager_approver_name'] = approver_name
+                    update_fields['manager_approver_role'] = role_label
                 elif approver_role.upper() == 'ADMIN':
                     update_fields['approval_status.admin'] = 'REJECTED'
+                    update_fields['admin_approver_name'] = approver_name
+                    update_fields['admin_approver_role'] = role_label
                 elif approver_role.upper() == 'COO':
                     update_fields['approval_status.coo'] = 'REJECTED'
+                    update_fields['coo_approver_name'] = approver_name
+                    update_fields['coo_approver_role'] = role_label
             
             result = self.collection.update_one(
                 {'_id': ObjectId(request_id)},
@@ -312,27 +407,37 @@ class PTOModel:
                 'coo': 'PENDING'
             }),
             
-            'submitted_date': request.get('submitted_date').isoformat() if request.get('submitted_date') else None,
+            'submitted_date': self._format_datetime(request.get('submitted_date')),
             
             'approved_by_supervisor': str(request['approved_by_supervisor']) if request.get('approved_by_supervisor') else None,
-            'supervisor_approved_date': request.get('supervisor_approved_date').isoformat() if request.get('supervisor_approved_date') else None,
-            'supervisor_comments': request.get('supervisor_comments', ''),
+            'supervisor_approved_date': self._format_datetime(request.get('supervisor_approved_date')),
+            'supervisor_comments': request.get('supervisor_comments') or '',
+            'supervisor_approver_name': request.get('supervisor_approver_name') or '',
+            'supervisor_approver_role': request.get('supervisor_approver_role') or '',
             
             'approved_by_manager': str(request['approved_by_manager']) if request.get('approved_by_manager') else None,
-            'manager_approved_date': request.get('manager_approved_date').isoformat() if request.get('manager_approved_date') else None,
-            'manager_comments': request.get('manager_comments', ''),
+            'manager_approved_date': self._format_datetime(request.get('manager_approved_date')),
+            'manager_comments': request.get('manager_comments') or '',
+            'manager_approver_name': request.get('manager_approver_name') or '',
+            'manager_approver_role': request.get('manager_approver_role') or '',
             
             'approved_by_admin': str(request['approved_by_admin']) if request.get('approved_by_admin') else None,
-            'admin_approved_date': request.get('admin_approved_date').isoformat() if request.get('admin_approved_date') else None,
-            'admin_comments': request.get('admin_comments', ''),
+            'admin_approved_date': self._format_datetime(request.get('admin_approved_date')),
+            'admin_comments': request.get('admin_comments') or '',
+            'admin_approver_name': request.get('admin_approver_name') or '',
+            'admin_approver_role': request.get('admin_approver_role') or '',
             
             'approved_by_coo': str(request['approved_by_coo']) if request.get('approved_by_coo') else None,
-            'coo_approved_date': request.get('coo_approved_date').isoformat() if request.get('coo_approved_date') else None,
-            'coo_comments': request.get('coo_comments', ''),
+            'coo_approved_date': self._format_datetime(request.get('coo_approved_date')),
+            'coo_comments': request.get('coo_comments') or '',
+            'coo_approver_name': request.get('coo_approver_name') or '',
+            'coo_approver_role': request.get('coo_approver_role') or '',
             
-            'rejection_reason': request.get('rejection_reason', ''),
+            'rejection_reason': request.get('rejection_reason') or '',
             'rejected_by': str(request['rejected_by']) if request.get('rejected_by') else None,
-            'rejected_date': request.get('rejected_date').isoformat() if request.get('rejected_date') else None,
+            'rejected_date': self._format_datetime(request.get('rejected_date')),
+            'rejected_by_name': request.get('rejected_by_name') or '',
+            'rejected_by_role': request.get('rejected_by_role') or '',
             
             'created_at': request.get('created_at').isoformat() if request.get('created_at') else None,
             'updated_at': request.get('updated_at').isoformat() if request.get('updated_at') else None
