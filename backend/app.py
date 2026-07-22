@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
 from models import init_db
 from routes import register_blueprints
+from werkzeug.exceptions import RequestEntityTooLarge
 
 CORS_RESOURCE_OPTIONS = {
     'methods': ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -33,6 +34,13 @@ def create_app():
         )
     
     init_db(app.config['MONGO_URI'], app.config['DB_NAME'])
+
+    app.config['UPLOAD_FOLDER'].mkdir(parents=True, exist_ok=True)
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_file_too_large(_error):
+        max_mb = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+        return jsonify({'message': f'File too large. Maximum size is {max_mb} MB'}), 413
     
     register_blueprints(app)
     

@@ -32,3 +32,5 @@ class Config:
     PORT = int(os.getenv('PORT', 5000))
     CORS_ALLOW_ALL = os.getenv('CORS_ALLOW_ALL', 'False') == 'True'
     CORS_ORIGINS = _parse_cors_origins()
+    UPLOAD_FOLDER = BASE_DIR / 'uploads'
+    MAX_CONTENT_LENGTH = int(os.getenv('MAX_UPLOAD_SIZE_MB', '50')) * 1024 * 1024

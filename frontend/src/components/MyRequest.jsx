@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiOutlineCalendar, HiOutlineTrash } from 'react-icons/hi2';
+import { HiOutlineCalendar } from 'react-icons/hi2';
 import { API_BASE_URL } from '../config/api';
 import RequestCard from './RequestCard';
 import './MyRequest.css';
@@ -15,7 +15,6 @@ function MyRequest() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('PENDING');
-  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchMyRequests();
@@ -61,51 +60,16 @@ function MyRequest() {
     }
   };
 
-  const handleCancelRequest = async (requestId) => {
-    if (!window.confirm('Are you sure you want to cancel this request?')) {
-      return;
-    }
-
-    try {
-      setDeletingId(requestId);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/pto/requests/${requestId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setRequests(requests.filter(req => req.id !== requestId));
-      } else {
-        const data = await response.json();
-        alert(data.message || 'Failed to cancel request');
-      }
-    } catch (err) {
-      alert('Unable to cancel request. Please try again.');
-      console.error('Error canceling request:', err);
-    } finally {
-      setDeletingId(null);
-    }
+  const handleCancelSuccess = (requestId) => {
+    setRequests((currentRequests) => currentRequests.filter((req) => req.id !== requestId));
   };
 
   const renderRequestCard = (request) => (
     <RequestCard
       key={request.id}
       request={request}
-      headerActions={
-        request.status === 'PENDING' ? (
-          <button
-            className="cancel-btn"
-            onClick={() => handleCancelRequest(request.id)}
-            disabled={deletingId === request.id}
-          >
-            <HiOutlineTrash />
-            {deletingId === request.id ? 'Canceling...' : 'Cancel'}
-          </button>
-        ) : null
-      }
+      allowCancel
+      onCancelSuccess={handleCancelSuccess}
     />
   );
 

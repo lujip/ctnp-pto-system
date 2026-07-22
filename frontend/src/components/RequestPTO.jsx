@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react';
 import Calendar from './Calendar';
+import { HiOutlinePaperClip, HiOutlineTrash } from 'react-icons/hi2';
 import { USER_TYPES, normalizeUserType } from '../utils/userType';
 import { API_BASE_URL } from '../config/api';
+import { attachmentsAPI } from '../services/api';
 import './RequestPTO.css';
+
+const PTO_REQUEST_ENTITY_TYPE = 'pto_request';
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 function RequestPTO() {
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -11,6 +21,7 @@ function RequestPTO() {
     leave_dates: [],
     reason: ''
   });
+  const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -92,6 +103,45 @@ function RequestPTO() {
     setSuccess('');
   };
 
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    setAttachments((prev) => [...prev, ...files]);
+    setError('');
+    setSuccess('');
+    event.target.value = '';
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments((prev) => prev.filter((_, fileIndex) => fileIndex !== index));
+    setError('');
+    setSuccess('');
+  };
+
+  const uploadAttachments = async (requestId) => {
+    for (const file of attachments) {
+      const { response, data } = await attachmentsAPI.upload(file, {
+        entityType: PTO_REQUEST_ENTITY_TYPE,
+        entityId: requestId,
+        description: formData.reason || '',
+      });
+
+      if (!response.ok) {
+        throw new Error(data.message || `Failed to upload ${file.name}`);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      leave_type: '',
+      leave_dates: [],
+      reason: ''
+    });
+    setAttachments([]);
+  };
+
   const formatDateForDisplay = (date) => {
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
@@ -148,12 +198,21 @@ function RequestPTO() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('PTO request submitted successfully!');
-        setFormData({
-          leave_type: '',
-          leave_dates: [],
-          reason: ''
-        });
+        const requestId = data.request?.id;
+
+        if (requestId && attachments.length > 0) {
+          try {
+            await uploadAttachments(requestId);
+            setSuccess('PTO request and attachments submitted successfully!');
+          } catch (uploadError) {
+            setSuccess('PTO request submitted, but some attachments failed to upload.');
+            setError(uploadError.message || 'Failed to upload attachments');
+          }
+        } else {
+          setSuccess('PTO request submitted successfully!');
+        }
+
+        resetForm();
         fetchUserBalance();
       } else {
         setError(data.message || 'Failed to submit request');
@@ -251,6 +310,51 @@ function RequestPTO() {
             disabled={loading}
           />
         </div>
+
+        <div className="form-group attachments-section">
+          <label htmlFor="attachments">Attachments</label>
+          <p className="attachments-help">
+            Upload supporting documents. All file types are accepted.
+          </p>
+          <label htmlFor="attachments" className="attachment-upload-btn">
+            <HiOutlinePaperClip />
+            Choose Files
+          </label>
+          <input
+            id="attachments"
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            disabled={loading}
+            className="attachment-input"
+          />
+
+          {attachments.length > 0 && (
+            <ul className="attachment-list">
+              {attachments.map((file, index) => (
+                <li key={`${file.name}-${index}`} className="attachment-item">
+                  <div className="attachment-item-info">
+                    <HiOutlinePaperClip className="attachment-item-icon" />
+                    <div>
+                      <span className="attachment-item-name">{file.name}</span>
+                      <span className="attachment-item-size">{formatFileSize(file.size)}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="attachment-remove-btn"
+                    onClick={() => removeAttachment(index)}
+                    disabled={loading}
+                    aria-label={`Remove ${file.name}`}
+                  >
+                    <HiOutlineTrash />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         {error && (
           <div className="message error-message">
             {error}
@@ -261,11 +365,7 @@ function RequestPTO() {
           <button 
             type="button" 
             className="btn-secondary"
-            onClick={() => setFormData({
-              leave_type: '',
-              leave_dates: [],
-              reason: ''
-            })}
+            onClick={resetForm}
             disabled={loading}
           >
             Clear

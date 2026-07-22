@@ -152,6 +152,98 @@
   resize: vertical;
   min-height: 100px;
 }
+.request-pto-container .attachments-section {
+  margin-top: 4px;
+}
+.request-pto-container .attachments-help {
+  color: #999;
+  font-size: 13px;
+  margin: -4px 0 12px;
+}
+.request-pto-container .attachment-input {
+  display: none;
+}
+.request-pto-container .attachment-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #1F2128;
+  border: 1px dashed rgb(121, 121, 121);
+  border-radius: 6px;
+  color: #3498db;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.request-pto-container .attachment-upload-btn:hover {
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.08);
+}
+.request-pto-container .attachment-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.request-pto-container .attachment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #1F2128;
+  border: 1px solid rgb(121, 121, 121);
+  border-radius: 6px;
+}
+.request-pto-container .attachment-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.request-pto-container .attachment-item-icon {
+  width: 18px;
+  height: 18px;
+  color: #3498db;
+  flex-shrink: 0;
+}
+.request-pto-container .attachment-item-name {
+  display: block;
+  color: white;
+  font-size: 14px;
+  word-break: break-word;
+}
+.request-pto-container .attachment-item-size {
+  display: block;
+  color: #999;
+  font-size: 12px;
+  margin-top: 2px;
+}
+.request-pto-container .attachment-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.request-pto-container .attachment-remove-btn:hover:not(:disabled) {
+  background: rgba(231, 76, 60, 0.25);
+}
+.request-pto-container .attachment-remove-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .request-pto-container .message {
   padding: 12px 16px;
   border-radius: 0;
