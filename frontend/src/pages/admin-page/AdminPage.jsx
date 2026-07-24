@@ -4,6 +4,7 @@ import AdminAllRequest from '../../components/AdminAllRequest';
 import RequestPTO from '../../components/RequestPTO';
 import MyRequest from '../../components/MyRequest';
 import AvailabilityCalendar from '../../components/AvailabilityCalendar';
+import LeaveTypes from '../../components/LeaveTypes';
 import './AdminPage.css';
 
 function AdminPage({ currentPage }) {
@@ -24,7 +25,7 @@ function AdminPage({ currentPage }) {
       case '/reports':
         return <div><h2>Reports</h2><p>Coming soon...</p></div>;
       case '/settings':
-        return <div><h2>Settings</h2><p>Coming soon...</p></div>;
+        return <LeaveTypes />;
       case '/profile':
         return <div><h2>Profile</h2><p>Coming soon...</p></div>;
       default:

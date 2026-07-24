@@ -8,6 +8,38 @@ import './RequestPTO.css';
 
 const PTO_REQUEST_ENTITY_TYPE = 'pto_request';
 
+function getMinSelectableDate(leaveType) {
+  if (!leaveType) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  }
+
+  if (Number(leaveType.advance_notice_days) === 0) {
+    return null;
+  }
+
+  const minDate = new Date();
+  minDate.setHours(0, 0, 0, 0);
+  minDate.setDate(minDate.getDate() + Number(leaveType.advance_notice_days || 0));
+  return minDate;
+}
+
+function filterDatesByMinSelectableDate(dates, minSelectableDate) {
+  if (minSelectableDate == null) {
+    return dates;
+  }
+
+  const minDate = new Date(minSelectableDate);
+  minDate.setHours(0, 0, 0, 0);
+
+  return dates.filter((date) => {
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate >= minDate;
+  });
+}
+
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -40,6 +72,8 @@ function RequestPTO() {
   };
 
   const autoApprovalMessage = getAutoApprovalMessage();
+  const selectedLeaveType = leaveTypes.find((type) => type.name === formData.leave_type);
+  const minSelectableDate = getMinSelectableDate(selectedLeaveType);
 
   useEffect(() => {
     fetchLeaveTypes();
@@ -98,7 +132,20 @@ function RequestPTO() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'leave_type') {
+      const nextLeaveType = leaveTypes.find((type) => type.name === value);
+      const nextMinSelectableDate = getMinSelectableDate(nextLeaveType);
+
+      setFormData((prev) => ({
+        ...prev,
+        leave_type: value,
+        leave_dates: filterDatesByMinSelectableDate(prev.leave_dates, nextMinSelectableDate),
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
     setError('');
     setSuccess('');
   };
@@ -280,6 +327,7 @@ function RequestPTO() {
           <Calendar 
             selectedDates={formData.leave_dates}
             onDateSelect={handleDateSelect}
+            minSelectableDate={minSelectableDate}
           />
         </div>
 

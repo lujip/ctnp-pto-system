@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 import './Calendar.css';
 
-function Calendar({ selectedDates = [], onDateSelect, minDate = new Date() }) {
+function Calendar({ selectedDates = [], onDateSelect, minSelectableDate = new Date() }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthNames = [
@@ -30,11 +30,15 @@ function Calendar({ selectedDates = [], onDateSelect, minDate = new Date() }) {
   };
 
   const isDateDisabled = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    if (minSelectableDate == null) {
+      return false;
+    }
+
     const compareDate = new Date(date);
     compareDate.setHours(0, 0, 0, 0);
-    return compareDate < today;
+    const minDate = new Date(minSelectableDate);
+    minDate.setHours(0, 0, 0, 0);
+    return compareDate < minDate;
   };
 
   const handleDateClick = (date) => {

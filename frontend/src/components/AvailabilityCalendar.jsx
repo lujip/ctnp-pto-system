@@ -14,13 +14,7 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const VIEW_MODES = ['week', 'month', 'year'];
-
-const LEAVE_COLORS = {
-  Vacation: '#4285f4',
-  Sick: '#ea4335',
-  Emergency: '#fbbc04',
-  Personal: '#9c27b0'
-};
+const DEFAULT_LEAVE_COLOR = '#667eea';
 
 const toDateKey = (date) => {
   const year = date.getFullYear();
@@ -38,8 +32,6 @@ const parseDate = (value) => {
   local.setHours(0, 0, 0, 0);
   return local;
 };
-
-const getLeaveColor = (leaveType) => LEAVE_COLORS[leaveType] || '#667eea';
 
 const expandEntryDates = (entry) => {
   const dates = new Set();
@@ -125,14 +117,80 @@ function AvailabilityCalendar() {
   const [viewMode, setViewMode] = useState('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [entries, setEntries] = useState([]);
+  const [leaveTypes, setLeaveTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
+    fetchLeaveTypes();
+  }, []);
+
+  useEffect(() => {
     fetchCalendarEntries();
   }, [viewMode, currentDate]);
+
+  const leaveColorMap = useMemo(() => {
+    const map = {};
+
+    leaveTypes.forEach((leaveType) => {
+      const color = leaveType.color || DEFAULT_LEAVE_COLOR;
+      if (leaveType.name) {
+        map[leaveType.name] = color;
+        map[leaveType.name.toLowerCase()] = color;
+      }
+      if (leaveType.code) {
+        map[leaveType.code] = color;
+        map[leaveType.code.toLowerCase()] = color;
+      }
+    });
+
+    return map;
+  }, [leaveTypes]);
+
+  const activeLeaveTypes = useMemo(
+    () => leaveTypes.filter((leaveType) => leaveType.status !== 'INACTIVE'),
+    [leaveTypes]
+  );
+
+  const resolveLeaveColor = (entryOrLeaveType) => {
+    if (entryOrLeaveType && typeof entryOrLeaveType === 'object') {
+      if (entryOrLeaveType.leave_type_color) {
+        return entryOrLeaveType.leave_type_color;
+      }
+      return resolveLeaveColor(entryOrLeaveType.leave_type);
+    }
+
+    const leaveType = String(entryOrLeaveType || '').trim();
+    if (!leaveType) {
+      return DEFAULT_LEAVE_COLOR;
+    }
+
+    return (
+      leaveColorMap[leaveType] ||
+      leaveColorMap[leaveType.toLowerCase()] ||
+      DEFAULT_LEAVE_COLOR
+    );
+  };
+
+  const fetchLeaveTypes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/pto/leave-types`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLeaveTypes(data.leave_types || []);
+      }
+    } catch (err) {
+      console.error('Error fetching leave types:', err);
+    }
+  };
 
   const fetchCalendarEntries = async () => {
     try {
@@ -223,7 +281,7 @@ function AvailabilityCalendar() {
       <div
         key={`${entry.id}-${compact ? 'compact' : 'full'}`}
         className={`schedule-entry ${isPending ? 'pending' : 'approved'} ${compact ? 'compact' : ''}`}
-        style={{ backgroundColor: getLeaveColor(entry.leave_type) }}
+        style={{ backgroundColor: resolveLeaveColor(entry) }}
         title={`${entry.requester_name} (${entry.department || 'No department'}) - ${entry.leave_type}${isPending ? ' (Pending)' : ''}`}
       >
         <button
@@ -298,7 +356,7 @@ function AvailabilityCalendar() {
                       <div
                         key={`${employee.id}-${entry.id}-${dateKey}`}
                         className={`schedule-block ${entry.status === 'PENDING' ? 'pending' : ''}`}
-                        style={{ backgroundColor: getLeaveColor(entry.leave_type) }}
+                        style={{ backgroundColor: resolveLeaveColor(entry) }}
                         title={`${entry.leave_type}${entry.status === 'PENDING' ? ' (Pending)' : ''}`}
                       >
                         {entry.leave_type}
@@ -461,10 +519,13 @@ function AvailabilityCalendar() {
       </div>
 
       <div className="availability-legend">
-        {Object.entries(LEAVE_COLORS).map(([type, color]) => (
-          <span key={type} className="legend-item">
-            <span className="legend-swatch" style={{ backgroundColor: color }} />
-            {type}
+        {activeLeaveTypes.map((leaveType) => (
+          <span key={leaveType.id} className="legend-item">
+            <span
+              className="legend-swatch"
+              style={{ backgroundColor: leaveType.color || DEFAULT_LEAVE_COLOR }}
+            />
+            {leaveType.name}
           </span>
         ))}
         <span className="legend-item">

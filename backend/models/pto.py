@@ -11,6 +11,25 @@ APPROVAL_ROLE_LABELS = {
     'COO': 'COO',
 }
 
+DEFAULT_LEAVE_TYPE_COLORS = {
+    'Vacation': '#4285f4',
+    'Sick': '#ea4335',
+    'Emergency': '#fbbc04',
+    'Personal': '#9c27b0',
+}
+
+DEFAULT_LEAVE_COLOR = '#667eea'
+
+FALLBACK_LEAVE_COLORS = [
+    '#4285f4',
+    '#ea4335',
+    '#fbbc04',
+    '#9c27b0',
+    '#667eea',
+    '#26a69a',
+    '#ff7043',
+]
+
 
 class PTOModel:
     def __init__(self, db):
@@ -328,6 +347,7 @@ class PTOModel:
                     "default_days": 15,
                     "requires_approval": True,
                     "advance_notice_days": 7,
+                    "color": DEFAULT_LEAVE_TYPE_COLORS['Vacation'],
                     "status": "ACTIVE"
                 },
                 {
@@ -337,6 +357,7 @@ class PTOModel:
                     "default_days": 15,
                     "requires_approval": True,
                     "advance_notice_days": 0,
+                    "color": DEFAULT_LEAVE_TYPE_COLORS['Sick'],
                     "status": "ACTIVE"
                 },
                 {
@@ -346,6 +367,7 @@ class PTOModel:
                     "default_days": 5,
                     "requires_approval": True,
                     "advance_notice_days": 0,
+                    "color": DEFAULT_LEAVE_TYPE_COLORS['Emergency'],
                     "status": "ACTIVE"
                 },
                 {
@@ -355,13 +377,186 @@ class PTOModel:
                     "default_days": 5,
                     "requires_approval": True,
                     "advance_notice_days": 3,
+                    "color": DEFAULT_LEAVE_TYPE_COLORS['Personal'],
                     "status": "ACTIVE"
                 }
             ]
             self.leave_types_collection.insert_many(default_types)
             leave_types = list(self.leave_types_collection.find())
-        
-        return leave_types
+
+        return self._ensure_leave_type_colors(leave_types)
+
+    def get_leave_type_color_map(self):
+        color_map = {}
+
+        for leave_type in self.get_leave_types():
+            color = leave_type.get('color', DEFAULT_LEAVE_COLOR)
+            name = str(leave_type.get('name', '')).strip()
+            code = str(leave_type.get('code', '')).strip()
+
+            if name:
+                color_map[name] = color
+                color_map[name.lower()] = color
+            if code:
+                color_map[code] = color
+                color_map[code.lower()] = color
+
+        return color_map
+
+    def resolve_leave_type_color(self, leave_type_name, color_map=None):
+        if color_map is None:
+            color_map = self.get_leave_type_color_map()
+
+        key = str(leave_type_name or '').strip()
+        if not key:
+            return DEFAULT_LEAVE_COLOR
+
+        return color_map.get(key) or color_map.get(key.lower()) or DEFAULT_LEAVE_COLOR
+
+    def _resolve_leave_type_color(self, name, index=0, provided=None):
+        if provided:
+            return self._normalize_leave_type_color(provided)
+
+        if name in DEFAULT_LEAVE_TYPE_COLORS:
+            return DEFAULT_LEAVE_TYPE_COLORS[name]
+
+        return FALLBACK_LEAVE_COLORS[index % len(FALLBACK_LEAVE_COLORS)]
+
+    def _normalize_leave_type_color(self, color):
+        normalized = str(color or '').strip()
+        if not re.fullmatch(r'#[0-9A-Fa-f]{6}', normalized):
+            raise ValueError('color must be a valid hex value like #4285f4')
+        return normalized.lower()
+
+    def _ensure_leave_type_colors(self, leave_types):
+        updated_types = []
+
+        for index, leave_type in enumerate(leave_types):
+            if leave_type.get('color'):
+                updated_types.append(leave_type)
+                continue
+
+            color = self._resolve_leave_type_color(
+                leave_type.get('name', ''),
+                index=index,
+            )
+            self.leave_types_collection.update_one(
+                {'_id': leave_type['_id']},
+                {'$set': {'color': color}},
+            )
+            leave_type['color'] = color
+            updated_types.append(leave_type)
+
+        return updated_types
+
+    def get_leave_type_by_id(self, leave_type_id):
+        try:
+            return self.leave_types_collection.find_one({'_id': ObjectId(leave_type_id)})
+        except Exception:
+            return None
+
+    def get_leave_type_by_name(self, name):
+        normalized_name = str(name or '').strip()
+        if not normalized_name:
+            return None
+
+        return self.leave_types_collection.find_one({
+            '$or': [
+                {'name': {'$regex': f'^{re.escape(normalized_name)}$', '$options': 'i'}},
+                {'code': {'$regex': f'^{re.escape(normalized_name)}$', '$options': 'i'}},
+            ]
+        })
+
+    def create_leave_type(self, leave_type_data):
+        name = str(leave_type_data.get('name', '')).strip()
+        if not name:
+            raise ValueError('name is required')
+
+        if self.get_leave_type_by_name(name):
+            raise ValueError('Leave type already exists')
+
+        existing_count = self.leave_types_collection.count_documents({})
+        leave_type = {
+            'name': name,
+            'code': str(leave_type_data.get('code', '')).strip().upper(),
+            'description': leave_type_data.get('description', ''),
+            'default_days': int(leave_type_data.get('default_days', 0)),
+            'requires_approval': bool(leave_type_data.get('requires_approval', True)),
+            'advance_notice_days': int(leave_type_data.get('advance_notice_days', 0)),
+            'color': self._resolve_leave_type_color(
+                name,
+                index=existing_count,
+                provided=leave_type_data.get('color'),
+            ),
+            'status': str(leave_type_data.get('status', 'ACTIVE')).upper(),
+        }
+
+        result = self.leave_types_collection.insert_one(leave_type)
+        return str(result.inserted_id)
+
+    def update_leave_type(self, leave_type_id, update_data):
+        leave_type = self.get_leave_type_by_id(leave_type_id)
+        if not leave_type:
+            return False
+
+        update_fields = {}
+        allowed_fields = [
+            'name',
+            'code',
+            'description',
+            'default_days',
+            'requires_approval',
+            'advance_notice_days',
+            'color',
+            'status',
+        ]
+
+        for field in allowed_fields:
+            if field not in update_data:
+                continue
+
+            if field == 'name':
+                normalized_name = str(update_data[field]).strip()
+                if not normalized_name:
+                    raise ValueError('name is required')
+
+                existing = self.get_leave_type_by_name(normalized_name)
+                if existing and str(existing['_id']) != leave_type_id:
+                    raise ValueError('Leave type already exists')
+
+                update_fields[field] = normalized_name
+            elif field == 'code':
+                update_fields[field] = str(update_data[field]).strip().upper()
+            elif field == 'description':
+                update_fields[field] = str(update_data[field]).strip()
+            elif field == 'default_days':
+                update_fields[field] = int(update_data[field])
+            elif field == 'advance_notice_days':
+                if int(update_data[field]) < 0:
+                    raise ValueError('advance_notice_days must be zero or greater')
+                update_fields[field] = int(update_data[field])
+            elif field == 'requires_approval':
+                update_fields[field] = bool(update_data[field])
+            elif field == 'color':
+                update_fields[field] = self._normalize_leave_type_color(update_data[field])
+            elif field == 'status':
+                update_fields[field] = str(update_data[field]).upper()
+
+        if not update_fields:
+            return False
+
+        result = self.leave_types_collection.update_one(
+            {'_id': ObjectId(leave_type_id)},
+            {'$set': update_fields},
+        )
+        return result.modified_count > 0
+
+    def delete_leave_type(self, leave_type_id):
+        try:
+            result = self.leave_types_collection.delete_one({'_id': ObjectId(leave_type_id)})
+            return result.deleted_count > 0
+        except Exception:
+            return False
 
     def _format_datetime(self, value):
         if not value:
@@ -455,5 +650,6 @@ class PTOModel:
             'default_days': leave_type.get('default_days', 0),
             'requires_approval': leave_type.get('requires_approval', True),
             'advance_notice_days': leave_type.get('advance_notice_days', 0),
+            'color': leave_type.get('color', DEFAULT_LEAVE_COLOR),
             'status': leave_type.get('status', 'ACTIVE')
         }

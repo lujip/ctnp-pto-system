@@ -21,6 +21,76 @@ def get_leave_types(current_user):
     except Exception as e:
         return jsonify({'message': f'An error occurred: {str(e)}'}), 500
 
+
+@pto_bp.route('/leave-types', methods=['POST'])
+@token_required
+def create_leave_type(current_user):
+    try:
+        if normalize_user_type(current_user.get('user_type')) != 'ADMIN':
+            return jsonify({'message': 'Unauthorized'}), 403
+
+        data = request.get_json() or {}
+        pto_model = PTOModel(get_db())
+        leave_type_id = pto_model.create_leave_type(data)
+        new_leave_type = pto_model.get_leave_type_by_id(leave_type_id)
+
+        return jsonify({
+            'message': 'Leave type created successfully',
+            'leave_type': pto_model.serialize_leave_type(new_leave_type),
+        }), 201
+    except ValueError as e:
+        return jsonify({'message': str(e)}), 400
+    except Exception as e:
+        return jsonify({'message': f'An error occurred: {str(e)}'}), 500
+
+
+@pto_bp.route('/leave-types/<leave_type_id>', methods=['PUT'])
+@token_required
+def update_leave_type(current_user, leave_type_id):
+    try:
+        if normalize_user_type(current_user.get('user_type')) != 'ADMIN':
+            return jsonify({'message': 'Unauthorized'}), 403
+
+        data = request.get_json() or {}
+        pto_model = PTOModel(get_db())
+
+        if not pto_model.get_leave_type_by_id(leave_type_id):
+            return jsonify({'message': 'Leave type not found'}), 404
+
+        success = pto_model.update_leave_type(leave_type_id, data)
+        updated_leave_type = pto_model.get_leave_type_by_id(leave_type_id)
+
+        return jsonify({
+            'message': 'Leave type updated successfully' if success else 'No changes made',
+            'leave_type': pto_model.serialize_leave_type(updated_leave_type),
+        }), 200
+    except ValueError as e:
+        return jsonify({'message': str(e)}), 400
+    except Exception as e:
+        return jsonify({'message': f'An error occurred: {str(e)}'}), 500
+
+
+@pto_bp.route('/leave-types/<leave_type_id>', methods=['DELETE'])
+@token_required
+def delete_leave_type(current_user, leave_type_id):
+    try:
+        if normalize_user_type(current_user.get('user_type')) != 'ADMIN':
+            return jsonify({'message': 'Unauthorized'}), 403
+
+        pto_model = PTOModel(get_db())
+
+        if not pto_model.get_leave_type_by_id(leave_type_id):
+            return jsonify({'message': 'Leave type not found'}), 404
+
+        success = pto_model.delete_leave_type(leave_type_id)
+
+        if success:
+            return jsonify({'message': 'Leave type deleted successfully'}), 200
+
+        return jsonify({'message': 'Failed to delete leave type'}), 500
+    except Exception as e:
+        return jsonify({'message': f'An error occurred: {str(e)}'}), 500
+
 @pto_bp.route('/calendar', methods=['GET'])
 @token_required
 def get_calendar_entries(current_user):
@@ -30,7 +100,16 @@ def get_calendar_entries(current_user):
         end = request.args.get('end')
 
         entries = pto_model.get_calendar_requests(start, end)
-        serialized_entries = [pto_model.serialize_request(entry) for entry in entries]
+        color_map = pto_model.get_leave_type_color_map()
+        serialized_entries = []
+
+        for entry in entries:
+            serialized = pto_model.serialize_request(entry)
+            serialized['leave_type_color'] = pto_model.resolve_leave_type_color(
+                entry.get('leave_type'),
+                color_map,
+            )
+            serialized_entries.append(serialized)
 
         return jsonify({'entries': serialized_entries}), 200
 
